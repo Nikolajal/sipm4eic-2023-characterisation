@@ -1,3 +1,5 @@
+#pragma once
+
 #include "makeiv.C"
 
 bool iv_fit_oneshot = true;

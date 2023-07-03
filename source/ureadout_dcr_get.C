@@ -1,3 +1,5 @@
+#pragma once
+
 TGraphErrors *
 ureadout_dcr_get(const std::string filename, const std::string whatx, const std::string whaty = "dead_rate")
 {

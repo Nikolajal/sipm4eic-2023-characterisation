@@ -1,3 +1,5 @@
+#pragma once
+
 #include "../utils/graphutils.C"
 
 TGraphErrors *

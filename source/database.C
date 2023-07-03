@@ -1,5 +1,8 @@
+#pragma once
+
 #include "make_iv_scan.C"
 #include "ureadout_dcr_get.C"
+#include "../utils/graphutils.C"
 
 namespace database {
 
@@ -19,8 +22,8 @@ std::map<std::string, std::map<std::string, std::map<std::string, std::string>>>
 void read_database(std::string fname);
 void dump_filenames(std::string fname);
 std::map<std::string, std::string> get_filename(std::string board, std::string channel, std::string step);
-TGraphErrors *get_dcr_vbias_scan(std::string board, std::string channel, std::string step);
-TGraphErrors *get_iv_scan(std::string board, std::string channel, std::string step);
+TGraphErrors *get_dcr_vbias_scan(std::string board, std::string channel, std::string step, int marker = 1, int color = 1);
+TGraphErrors *get_iv_scan(std::string board, std::string channel, std::string step, int marker = 1, int color = 1);
 
 void
 dump_filenames(std::string fname)
@@ -41,19 +44,23 @@ dump_filenames(std::string fname)
 }
 
 TGraphErrors *
-get_dcr_vbias_scan(std::string board, std::string channel, std::string step)
+get_dcr_vbias_scan(std::string board, std::string channel, std::string step, int marker, int color)
 {
   auto fname = get_filename(board, channel, step);
   if (fname["dcr-vbias"].empty()) return nullptr;
-  return ureadout_dcr_get(fname["dcr-vbias"], "bias_voltage", "dead_rate");
+  auto g = ureadout_dcr_get(fname["dcr-vbias"], "bias_voltage", "dead_rate");
+  graphutils::set_style(g, marker, color);
+  return g;
 }
 
 TGraphErrors *
-get_iv_scan(std::string board, std::string channel, std::string step)
+get_iv_scan(std::string board, std::string channel, std::string step, int marker, int color)
 {
   auto fname = get_filename(board, channel, step);
   if (fname["iv"].empty() || fname["iv-open"].empty()) return nullptr;
-  return make_iv_scan(fname["iv"], fname["iv-open"]);
+  auto g = make_iv_scan(fname["iv"], fname["iv-open"]);
+  graphutils::set_style(g, marker, color);
+  return g;
 }
 
 
