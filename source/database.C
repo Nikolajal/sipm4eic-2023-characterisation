@@ -24,13 +24,38 @@ void dump_filenames(std::string fname);
 std::map<std::string, std::string> get_filename(std::string board, std::string channel, std::string step);
 TGraphErrors *get_dcr_vbias_scan(std::string board, std::string channel, std::string step, int marker = 1, int color = 1);
 TGraphErrors *get_iv_scan(std::string board, std::string channel, std::string step, int marker = 1, int color = 1);
+TGraphErrors *get_gain(std::string board, std::string channel, std::string step, int marker = 1, int color = 1);
 
+TGraphErrors *
+get_gain(std::string board, std::string channel, std::string step, int marker, int color)
+{
+  /** get IV **/
+  auto giv = get_iv_scan(board, channel, step, marker, color);
+  if (!giv) return nullptr;
+  /** subtract surface current **/
+  float ave = 0.;
+  for (int i = 0; i < 5; ++i) ave += giv->GetY()[i];
+  graphutils::y_shift(giv, ave / 5.);
+
+  /** get DCR **/
+  auto gdcr = get_dcr_vbias_scan(board, channel, step);
+  if (!gdcr) return nullptr;
+
+  /** compute gain **/
+  auto ggain = graphutils::ratio(giv, gdcr);
+  graphutils::y_scale(ggain, 1. / TMath::Qe());
+
+  return ggain;
+}
+
+  
 void
 dump_filenames(std::string fname)
 {
   ofstream fout(fname);
   for (auto &val1 : boards) {
     auto board = val1.first;
+    if (board == ".") continue;
     for (auto &val2 : val1.second) {
       auto step = val2.first;
       for (auto &channel : channels) {
