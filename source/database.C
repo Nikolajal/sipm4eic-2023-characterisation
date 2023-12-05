@@ -38,18 +38,18 @@ namespace database
   //  --- Channel to sensor
   //  --- --- { Channels, Sensor }
   std::map<std::string, std::string> channel_to_sensor = {
-      {"A1", "Hamamatsu S13361-3050"},
-      {"A2", "Hamamatsu S13361-3050"},
-      {"A3", "Hamamatsu S13361-3050"},
-      {"A4", "Hamamatsu S13361-3050"},
-      {"B1", "Hamamatsu S13361-3075"},
-      {"B2", "Hamamatsu S13361-3075"},
-      {"B3", "Hamamatsu S13361-3075"},
-      {"B4", "Hamamatsu S13361-3075"},
-      {"C1", "Hamamatsu S14161-3050"},
-      {"C2", "Hamamatsu S14161-3050"},
-      {"C3", "Hamamatsu S14161-3050"},
-      {"C4", "Hamamatsu S14161-3050"}};
+      {"A1", "HPK S13360-3050VS"},
+      {"A2", "HPK S13360-3050VS"},
+      {"A3", "HPK S13360-3050VS"},
+      {"A4", "HPK S13360-3050VS"},
+      {"B1", "HPK S13360-3075VS"},
+      {"B2", "HPK S13360-3075VS"},
+      {"B3", "HPK S13360-3075VS"},
+      {"B4", "HPK S13360-3075VS"},
+      {"C1", "HPK S14161-3050HS"},
+      {"C2", "HPK S14161-3050HS"},
+      {"C3", "HPK S14161-3050HS"},
+      {"C4", "HPK S14161-3050HS"}};
   std::map<std::string, std::string> channel_to_sensor_short = {
       {"A1", "S13361_3050"},
       {"A2", "S13361_3050"},
@@ -66,9 +66,9 @@ namespace database
   //  --- Sensor to channels
   //  --- --- { Sensor, Channels }
   std::map<std::string, std::vector<std::string>> sensor_to_channels = {
-      {"Hamamatsu S13361-3050", {"A1", "A2", "A3", "A4"}},
-      {"Hamamatsu S13361-3075", {"B1", "B2", "B3", "B4"}},
-      {"Hamamatsu S14161-3050", {"C1", "C2", "C3", "C4"}}};
+      {"HPK S13360-3050VS", {"A1", "A2", "A3", "A4"}},
+      {"HPK S13360-3075VS", {"B1", "B2", "B3", "B4"}},
+      {"HPK S14161-3050HS", {"C1", "C2", "C3", "C4"}}};
   std::map<std::string, std::vector<std::string>> sensor_short_to_channels = {
       {"S13361_3050", {"A1", "A2", "A3", "A4"}},
       {"S13361_3075", {"B1", "B2", "B3", "B4"}},
@@ -122,13 +122,13 @@ namespace database
   //
   //  Sensor oriented quantities
   std::map<std::string, int> sensor_to_color = {
-      {"Hamamatsu S13361-3050", kRed},
-      {"Hamamatsu S13361-3075", kBlue},
-      {"Hamamatsu S14161-3050", kYellow + 2}};
-  std::map<std::string, int> sensor_short_to_color = {
-      {"S13361_3050", kRed},
-      {"S13361_3075", kBlue},
-      {"S14161_3050", kYellow + 2}};
+      {"HPK S13360-3050VS", kRed},
+      {"HPK S13360-3075VS", kBlue},
+      {"HPK S14161-3050HS", kYellow + 2}};
+  std::map<std::string, float> sensor_to_vbd = {
+      {"HPK S13360-3050VS", 48.4},
+      {"HPK S13360-3075VS", 47.9},
+      {"HPK S14161-3050HS", 36.5}};
   //
   //  --- Utility data structures ---
   //  --- Data structure in database reference
@@ -568,6 +568,30 @@ namespace database
       return null_rslt;
     }
     return database_memory[board][step][info];
+  }
+  template <TGraphErrors *(*func)(std::string, std::string, std::string, int, int)>
+  std::pair<float, float>
+  get_value_at_voltage(std::string board, std::string channel, std::string step, float target_voltage)
+  {
+    auto target_curve = func(board, channel, step, 0, 0);
+    if (!target_curve)
+      return {-1., -1.};
+    return graphutils::eval_with_errors(target_curve, target_voltage);
+  }
+  template <TGraphErrors *(*func)(std::string, std::string, std::string, int, int)>
+  std::pair<float, float>
+  get_value_at_overvoltage(std::string board, std::string channel, std::string step, float target_overvoltage)
+  {
+    return get_value_at_voltage<func>(board, channel, step, sensor_to_vbd[channel_to_sensor[channel]] + target_overvoltage);
+  }
+  template <TGraphErrors *(*func)(std::string, std::string, std::string, int, int)>
+  std::vector<std::pair<float, float>>
+  get_all_values_at_overvoltage(std::string board, std::string sensor, std::string step, float target_overvoltage)
+  {
+    std::vector<std::pair<float, float>> result;
+    for (auto current_channel : sensor_to_channels[sensor])
+      result.push_back(get_value_at_overvoltage<func>(board, current_channel, step, target_overvoltage));
+    return result;
   }
   //  --- Quality assurance
   void

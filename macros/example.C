@@ -15,7 +15,7 @@ void example(std::string data_dir)
 
   database::basedir = data_dir;
   database::read_database(database::basedir + "/database.txt");
-  
+
   auto c = new TCanvas("c", "c", 1200, 600);
   c->Divide(3, 1);
   c->cd(1)->DrawFrame(45, 1.e-11, 65, 1.e-3, ";bias voltage (V);current (A)");
