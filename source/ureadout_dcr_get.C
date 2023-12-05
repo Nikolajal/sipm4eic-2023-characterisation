@@ -7,9 +7,6 @@ ureadout_dcr_get(const std::string filename, const std::string whatx, const std:
   if (!fin || !fin->IsOpen()) return nullptr;
   auto tin = (TTree *)fin->Get("ureadout_dcr_scan");
   if (!tin) return nullptr;
-  std::cout << tin->GetEntries() << std::endl;
-
-  
   
   int base_threshold, threshold, bias_dac;
   float bias_voltage, raw_rate, raw_ratee, dead_rate, dead_ratee, fit_rate, fit_ratee;

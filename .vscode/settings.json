@@ -1,0 +1,8 @@
+{
+    "files.associations": {
+        "database.C": "cpp",
+        "example.C": "cpp",
+        "ureadout_dcr_get.C": "cpp",
+        "make_iv_scan.C": "cpp"
+    }
+}
