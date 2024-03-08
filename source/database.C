@@ -13,7 +13,7 @@ namespace database
   //
   //  --- Sensors oriented quantities ---
   //  All sensors
-  std::vector<std::string> sensors_full = {"HPK S13360-3050VS", "HPK S13361-3075VS", "HPK S14161-3050HS"};
+  std::vector<std::string> sensors_full = {"HPK S13360-3050VS", "HPK S13360-3075VS", "HPK S14161-3050HS"};
   //
   //  Board oriented quantities
   //  --- All available boards
@@ -21,10 +21,16 @@ namespace database
       "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15",
       "16", "17", "18", "19", "20", "21", "22", "23", "24", "25", "26", "27", "28", "29", "30",
       "31", "32", "33", "34"};
-  std::map<std::string, std::vector<std::string>> standard_status_to_boards =
-      {{"NEW", all_boards},
-       {"TIFPA-IRR1", {"1", "2", "13", "14", "15", "16"}},
-       {"LNL-IRR1", {}}};
+  std::map<std::string, std::vector<std::string>> standard_status_to_boards = {
+      {"NEW", all_boards},
+      {"TIFPA-IRR1", {"1", "2", "13", "14", "15", "16"}},
+      {"LNL-IRR1", {"21", "22", "23", "24", "25"}},
+      {"TIFPA-OANN", {"2"}}};
+  std::map<std::string, std::string> standard_status_to_status = {
+      {"NEW", "NEW"},
+      {"TIFPA-IRR1", "TIFPA-IRR1"},
+      {"LNL-IRR1", "LNL-IRR1"},
+      {"TIFPA-OANN", "OANN-150-150h"}};
   //  --- Board to status
   //  --- --- { Board, Status list }
   std::map<std::string, std::vector<std::string>> board_to_status_list; // TBI: Fill it reading fro the database
@@ -84,6 +90,8 @@ namespace database
       "SANN-150-30m", "SANN-150-2.5h", "SANN-150-24h", "SANN-150-73h", "SANN-150-250h",        // Third cycle of fwd/rev annealing
       "PANN1", "PANN2", "PANN3", "PANN3x",                                                     // Preventive annealing
       "TEMP313", "TEMP303", "TEMP293", "TEMP283", "TEMP278", "TEMP273", "TEMP263", "TEMP253"}; // Temperature Vbd Scan
+  std::vector<std::string> TScan_statuses = {
+      "TEMP303", "TEMP283", "TEMP278", "TEMP273", "TEMP263", "TEMP253"};
   //  --- Status to annealing time
   //  --- --- { Status, Time (min) }
   std::map<std::string, double> status_to_annealing_time = {
@@ -107,39 +115,70 @@ namespace database
       {"PANN3", 9000},
       {"PANN3x", 27000}};
   //  --- Status to temperature
-  //  --- --- { Status, Temperature (K) }
-  std::map<std::string, double> status_to_temperature = {
-      {"NEW", 243.15},
-      {"TIFPA-IRR1", 243.15},
-      {"TEMP313", 313.15},
-      {"TEMP303", 303.15},
-      {"TEMP293", 293.15},
-      {"TEMP283", 283.15},
-      {"TEMP278", 278.15},
-      {"TEMP273", 273.15},
-      {"TEMP263", 263.15},
-      {"TEMP253", 253.15}};
+  std::map<std::string, int> status_to_color = {
+      {"NEW", kAzure - 3},
+      {"TIFPA-IRR1", kGreen + 2},
+      {"LNL-IRR1", kSpring - 7},
+      {"OANN-150-150h", kRed - 3}};
+  std::map<std::string, int> status_to_marker = {
+      {"NEW", 20},
+      {"TIFPA-IRR1", 20},
+      {"LNL-IRR1", 21}};
   //
   //  Sensor oriented quantities
+  std::vector<std::string> all_sensors = {
+      "HPK S13360-3050VS",
+      "HPK S13360-3075VS",
+      "HPK S14161-3050HS"};
   std::map<std::string, int> sensor_to_color = {
       {"HPK S13360-3050VS", kRed},
-      {"HPK S13360-3075VS", kBlue},
-      {"HPK S14161-3050HS", kYellow + 2}};
+      {"HPK S13360-3075VS", kGreen - 2},
+      {"HPK S14161-3050HS", kAzure - 3}};
+  std::map<std::string, int> sensor_to_marker = {
+      {"HPK S13360-3050VS", 20},
+      {"HPK S13360-3075VS", 21},
+      {"HPK S14161-3050HS", 29}};
+  std::map<std::string, std::string> sensor_to_code = {
+      {"HPK S13360-3050VS", "HPK_13_50"},
+      {"HPK S13360-3075VS", "HPK_13_75"},
+      {"HPK S14161-3050HS", "HPK_14_50"}};
+  std::map<std::string, std::string> code_to_sensor = {
+      {"HPK_13_50", "HPK S13360-3050VS"},
+      {"HPK_13_75", "HPK S13360-3075VS"},
+      {"HPK_14_50", "HPK S14161-3050HS"}};
   std::map<std::string, float> sensor_to_vbd = {
       {"HPK S13360-3050VS", 48.4},
       {"HPK S13360-3075VS", 47.9},
       {"HPK S14161-3050HS", 36.5}};
+  std::map<std::string, float> sensor_to_vbd_Tdep = {
+      {"HPK S13360-3050VS", 0.054},
+      {"HPK S13360-3075VS", 0.054},
+      {"HPK S14161-3050HS", 0.034}};
+  std::map<std::string, float> DTS_PDE = {
+      {"HPK S13360-3050VS", 0.4},
+      {"HPK S13360-3075VS", 0.5},
+      {"HPK S14161-3050HS", 0.5}};
+  std::map<std::string, float> DTS_OVop = {
+      {"HPK S13360-3050VS", 3.},
+      {"HPK S13360-3075VS", 3.},
+      {"HPK S14161-3050HS", 2.7}};
+  std::vector<float> standard_overvoltage_points = {
+      1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0, 4.5, 5.0, 5.5, 6.0, 6.5, 7.0};
   //
   //  --- Utility data structures ---
   //  --- Data structure in database reference
-  std::vector<std::string> fields = {"run", "quality", "step", "setup", "iv-mux-1", "iv-mux-2", "dcr-chip-2", "dcr-chip-3"};
-  std::vector<std::string> criteria = {"run", "quality", "step", "setup", "iv-mux-1", "iv-mux-2", "dcr-chip-2", "dcr-chip-3", "temp", "ann-temp", "ann-time"};
+  std::vector<std::string> fields = {
+      "run", "quality", "step", "setup", "iv-mux-1", "iv-mux-2", "dcr-chip-2", "dcr-chip-3"};
+  std::vector<std::string> criteria = {
+      "run", "quality", "step", "setup", "iv-mux-1", "iv-mux-2", "dcr-chip-2", "dcr-chip-3", "temp", "ann-temp", "ann-time"};
   //  --- Global variables
   std::string basedir = ".";
   //  --- Board, Channel, Status, Curve (IV, DCR, Gain)
   std::map<std::string, std::map<std::string, std::map<std::string, std::map<std::string, TGraphErrors *>>>> cache_memory;
   //  --- Board, Status, Information (set-up, mux, dcr-chip )
   std::map<std::string, std::map<std::string, std::map<std::string, std::vector<std::string>>>> database_memory;
+  //  --- TGraph creation
+  using mkgraph_data_structure = std::map<std::pair<float, float>, std::vector<std::pair<float, float>>>;
   //
   //  --- Declarations ---
   //  --- I/O
@@ -149,16 +188,60 @@ namespace database
   TGraphErrors *get_dcr_vbias_scan(std::string board, std::string channel, std::string step, int marker = 1, int color = 1);
   TGraphErrors *get_dcr_threshold_scan(std::string board, std::string channel, std::string step, int marker = 1, int color = 1);
   TGraphErrors *get_gain(std::string board, std::string channel, std::string step, int marker = 1, int color = 1);
+  std::pair<float, float> get_cross_talk(std::string board, std::string channel, std::string step, std::string check_name = "");
   TGraphErrors *get_iv_scan(std::string board, std::string channel, std::string step, std::vector<std::pair<std::string, std::string>> other_filters, int marker = 1, int color = 1);
   TGraphErrors *get_dcr_vbias_scan(std::string board, std::string channel, std::string step, std::vector<std::pair<std::string, std::string>> other_filters, int marker = 1, int color = 1);
   TGraphErrors *get_dcr_threshold_scan(std::string board, std::string channel, std::string step, std::vector<std::pair<std::string, std::string>> other_filters, int marker = 1, int color = 1);
   TGraphErrors *get_gain(std::string board, std::string channel, std::string step, std::vector<std::pair<std::string, std::string>> other_filters, int marker = 1, int color = 1);
-  std::map<std::string, std::string> get_filename(std::string board, std::string channel, std::string step, std::vector<std::pair<std::string, std::string>> other_filters = {{}});
-  std::string get_database_info(std::string board, std::string channel, std::string step, std::vector<std::pair<std::string, std::string>> other_filters);
+  template <TGraphErrors *(*current_curve_getter)(std::string, std::string, std::string, int, int)>
+  std::pair<float, float>
+  get_Yvalue_at_X(std::string board, std::string channel, std::string step, float target_voltage);
+  template <TGraphErrors *(*current_curve_getter)(std::string, std::string, std::string, int, int)>
+  std::pair<float, float>
+  get_value_at_overvoltage(std::string board, std::string channel, std::string step, float target_overvoltage);
+  template <TGraphErrors *(*current_curve_getter)(std::string, std::string, std::string, int, int)>
+  std::vector<std::pair<float, float>>
+  get_all_values_at_overvoltage(std::string board, std::string sensor, std::string step, float target_overvoltage);
+  template <TGraphErrors *(*current_curve_getter)(std::string, std::string, std::string, int, int)>
+  std::vector<std::pair<float, float>>
+  get_all_values_at_overvoltage(std::vector<std::string> boards, std::string sensor, std::string step, float target_overvoltage);
+  std::map<std::string, std::string>
+  get_filename(std::string board, std::string channel, std::string step, std::vector<std::pair<std::string, std::string>> other_filters = {{}});
+  std::string
+  get_database_info(std::string board, std::string step, std::string info);
+  // get_database_info(std::string board, std::string channel, std::string step, std::vector<std::pair<std::string, std::string>> other_filters);
+
+  //  Setters
+  template <typename target_type>
+  void set_standard_style(target_type *target, int marker_style = 20, int marker_color = kBlack)
+  {
+    //  Line qualities
+    target->SetLineColor(marker_color);
+    target->SetLineStyle(kSolid);
+    target->SetLineWidth(2);
+    //  Marker qualities
+    target->SetMarkerColor(marker_color);
+    target->SetMarkerStyle(marker_style);
+    target->SetMarkerSize(2);
+    //  Fill qualities
+    target->SetFillStyle(0);
+    target->SetFillColor(marker_color);
+  }
+
   //   --- Quality assurance
   void check_all_plots_loaded();
   bool check_iv_goodness(TGraphErrors *gTarget);
-  //
+
+  //  Calculations
+  std::pair<float, float> measure_cross_talk(TGraphErrors *gTarget, std::string plot_name = "");
+  std::pair<float, float> measure_signal_amp(TGraphErrors *gTarget, std::string plot_name = "");
+  std::pair<float, float> measure_fraction_of_damage(std::pair<float, float> target_step, std::pair<float, float> new_reference, std::pair<float, float> maximum_reference);
+
+  //  Utilities
+  std::vector<TGraphErrors *> make_graph(mkgraph_data_structure data_structure);
+  void set_multi_graph(std::vector<TGraphErrors *> &target_graphs, int target_color, int target_marker);
+  std::pair<float, float> measure_average(std::vector<std::pair<float, float>> measurements, bool return_rms = false);
+
   //  Implementations
   //  ---  I/O
   void read_database(std::string database_input_file)
@@ -257,26 +340,121 @@ namespace database
     }
   }
   //  --- Getters
-  TGraphErrors *
-  get_iv_scan(std::string board, std::string channel, std::string step, int marker, int color)
+  //  --- --- General functions
+  //  --- --- --- Getters at a given X
+
+  //  - F - Getter of a value at a given x, the curve is taken as a template argument
+  template <TGraphErrors *(*current_curve_getter)(std::string, std::string, std::string, int, int)>
+  std::pair<float, float>
+  get_Yvalue_at_X(std::string board, std::string channel, std::string step, float target_x)
   {
-    return get_iv_scan(board, channel, step, {{}}, marker, color);
+    auto target_curve = current_curve_getter(board, channel, step, 0, 0);
+    if (!target_curve)
+      return {-1., -1.};
+    return graphutils::eval_with_errors(target_curve, target_x);
   }
-  TGraphErrors *
-  get_dcr_vbias_scan(std::string board, std::string channel, std::string step, int marker, int color)
+
+  //  - F - Getter of all values for a given sensor at a given x, the curve is taken as a template argument
+  template <TGraphErrors *(*current_curve_getter)(std::string, std::string, std::string, int, int)>
+  std::vector<std::pair<float, float>>
+  get_all_sensor_Yvalues_at_X(std::string board, std::string sensor, std::string step, float target_x)
   {
-    return get_dcr_vbias_scan(board, channel, step, {{}}, marker, color);
+    std::vector<std::pair<float, float>> result;
+    for (auto current_channel : sensor_to_channels[sensor])
+      result.push_back(get_Yvalue_at_X<current_curve_getter>(board, current_channel, step, target_x));
+    return result;
   }
-  TGraphErrors *
-  get_dcr_threshold_scan(std::string board, std::string channel, std::string step, int marker, int color)
+
+  //  - F - Getter of all values for a given sensor at a given x for all listed boards, the curve is taken as a template argument
+  template <TGraphErrors *(*current_curve_getter)(std::string, std::string, std::string, int, int)>
+  std::vector<std::pair<float, float>>
+  get_all_sensor_Yvalues_at_X(std::vector<std::string> board_list, std::string sensor, std::string step, float target_x)
   {
-    return get_dcr_threshold_scan(board, channel, step, {{}}, marker, color);
+    std::vector<std::pair<float, float>> result;
+    for (auto current_board : board_list)
+      for (auto current_channel : sensor_to_channels[sensor])
+        result.push_back(get_Yvalue_at_X<current_curve_getter>(current_board, current_channel, step, target_x));
+    return result;
   }
+
+  //  - F - Getter of TGraphErrors with average values for a given sensor at a given list of x for all listed boards, the curve is taken as a template argument
+  template <TGraphErrors *(*current_curve_getter)(std::string, std::string, std::string, int, int), bool use_rms = false>
   TGraphErrors *
-  get_gain(std::string board, std::string channel, std::string step, int marker, int color)
+  get_average_sensor_Yvalues_at_X(std::vector<std::string> board_list, std::string sensor, std::string step, std::vector<float> target_x_list)
   {
-    return get_gain(board, channel, step, {{}}, marker, color);
+    TGraphErrors *gResult = new TGraphErrors;
+    for (auto current_x : target_x_list)
+    {
+      auto current_point = gResult->GetN();
+      auto current_point_y = measure_average(get_all_sensor_Yvalues_at_X<current_curve_getter>(board_list, sensor, step, current_x), use_rms);
+      gResult->SetPoint(current_point, current_x, current_point_y.first);
+      gResult->SetPointError(current_point, 0., current_point_y.second);
+    }
+    return gResult;
   }
+
+  //  - F - Getter of TGraphErrors with average values for a given sensor at a given list of x for one board, the curve is taken as a template argument
+  template <TGraphErrors *(*current_curve_getter)(std::string, std::string, std::string, int, int), bool use_rms = false>
+  TGraphErrors *
+  get_average_sensor_Yvalues_at_X(std::string board, std::string sensor, std::string step, std::vector<float> target_x_list)
+  {
+    return get_average_sensor_Yvalues_at_X<current_curve_getter, use_rms>({board}, sensor, step, target_x_list);
+  }
+
+  //
+  //  --- --- --- Getters at a given overvoltage
+
+  //  - F - Getter of a value at a given overvoltage, the curve is taken as a template argument
+  template <TGraphErrors *(*current_curve_getter)(std::string, std::string, std::string, int, int)>
+  std::pair<float, float>
+  get_value_at_overvoltage(std::string board, std::string channel, std::string step, float target_overvoltage)
+  {
+    return get_Yvalue_at_X<current_curve_getter>(board, channel, step, sensor_to_vbd[channel_to_sensor[channel]] + target_overvoltage);
+  }
+
+  //  - F - Getter of all values for a given sensor at a given overvoltage, the curve is taken as a template argument
+  template <TGraphErrors *(*current_curve_getter)(std::string, std::string, std::string, int, int)>
+  std::vector<std::pair<float, float>>
+  get_all_values_at_overvoltage(std::string board, std::string sensor, std::string step, float target_overvoltage)
+  {
+    return get_all_sensor_Yvalues_at_X<current_curve_getter>(board, sensor, step, sensor_to_vbd[sensor] + target_overvoltage);
+  }
+
+  //  - F - Getter of all values for a given sensor at a given overvoltage for all listed boards, the curve is taken as a template argument
+  template <TGraphErrors *(*current_curve_getter)(std::string, std::string, std::string, int, int)>
+  std::vector<std::pair<float, float>>
+  get_all_values_at_overvoltage(std::vector<std::string> board_list, std::string sensor, std::string step, float target_overvoltage)
+  {
+    return get_all_sensor_Yvalues_at_X<current_curve_getter>(board_list, sensor, step, sensor_to_vbd[sensor] + target_overvoltage);
+  }
+
+  //  - F - Getter of TGraphErrors with average values for a given sensor at a given list of overvoltages for all listed boards, the curve is taken as a template argument
+  template <TGraphErrors *(*current_curve_getter)(std::string, std::string, std::string, int, int), bool use_rms = false>
+  TGraphErrors *
+  get_average_sensor_values_at_overvoltage(std::vector<std::string> board_list, std::string sensor, std::string step, std::vector<float> overvoltage_points = standard_overvoltage_points, int marker = kCircle, int color = kBlue)
+  {
+    for (auto &current_overvoltage : overvoltage_points)
+      current_overvoltage += sensor_to_vbd[sensor] + sensor_to_vbd_Tdep[sensor] * (std::stof(get_database_info(board_list[0], step, "temp")) - 243);
+    auto result = get_average_sensor_Yvalues_at_X<current_curve_getter, use_rms>(board_list, sensor, step, overvoltage_points);
+    for (auto iPnt = 0; iPnt < result->GetN(); ++iPnt)
+      result->GetX()[iPnt] -= sensor_to_vbd[sensor] + sensor_to_vbd_Tdep[sensor] * (std::stof(get_database_info(board_list[0], step, "temp")) - 243);
+    result->SetMarkerStyle(marker);
+    result->SetMarkerColor(color);
+    return result;
+  }
+
+  //  - F - Getter of TGraphErrors with average values for a given sensor at a given list of x for one board, the curve is taken as a template argument
+  template <TGraphErrors *(*current_curve_getter)(std::string, std::string, std::string, int, int), bool use_rms = false>
+  TGraphErrors *
+  get_average_sensor_values_at_overvoltage(std::string board, std::string sensor, std::string step, std::vector<float> target_x_list, int marker = kCircle, int color = kBlue)
+  {
+    return get_average_sensor_values_at_overvoltage<current_curve_getter, use_rms>({board}, sensor, step, target_x_list, marker, color);
+  }
+
+  //
+  //  --- --- IV
+
+  //  - F - Main function for IV curve getter
   TGraphErrors *
   get_iv_scan(std::string board, std::string channel, std::string step, std::vector<std::pair<std::string, std::string>> other_filters, int marker, int color)
   {
@@ -326,6 +504,26 @@ namespace database
     //  Return result
     return cache_memory[board][channel][step][key_word];
   }
+
+  //  - F - Simplified function for IV curve getter
+  TGraphErrors *
+  get_iv_scan(std::string board, std::string channel, std::string step, int marker, int color)
+  {
+    return get_iv_scan(board, channel, step, {{}}, marker, color);
+  }
+
+  //  - F - Get average IV over listed parameters
+  template <bool use_rms = false>
+  TGraphErrors *
+  get_average_iv_at_overvoltage(std::vector<std::string> board_list, std::string sensor, std::string step, std::vector<float> overvoltage_points = standard_overvoltage_points, int marker = kCircle, int color = kBlue)
+  {
+    return get_average_sensor_values_at_overvoltage<get_iv_scan, use_rms>(board_list, sensor, step, overvoltage_points, marker, color);
+  }
+
+  //
+  //  --- --- DCR
+
+  //  - F - Main function for DCR curve getter
   TGraphErrors *
   get_dcr_vbias_scan(std::string board, std::string channel, std::string step, std::vector<std::pair<std::string, std::string>> other_filters, int marker, int color)
   {
@@ -370,50 +568,25 @@ namespace database
     //  Return result
     return cache_memory[board][channel][step][key_word];
   }
-  TGraphErrors *
-  get_dcr_threshold_scan(std::string board, std::string channel, std::string step, std::vector<std::pair<std::string, std::string>> other_filters, int marker, int color)
+
+  //  - F - Simplified function for DCR curve getter
+  TGraphErrors *get_dcr_vbias_scan(std::string board, std::string channel, std::string step, int marker, int color)
   {
-    std::string key_word = "DCR_threshold";
-    //  Check the DCR curve has been stored
-    if (cache_memory.find(board) != cache_memory.end())
-    {
-      if (cache_memory[board].find(channel) != cache_memory[board].end())
-      {
-        if (cache_memory[board][channel].find(step) != cache_memory[board][channel].end())
-        {
-          if (cache_memory[board][channel][step].find(key_word) != cache_memory[board][channel][step].end())
-          {
-            graphutils::set_style(cache_memory[board][channel][step][key_word], marker, color);
-            return cache_memory[board][channel][step][key_word];
-          }
-        }
-      }
-    }
-    //  Not found: we need to calculate it
-    auto file_name = get_filename(board, channel, step, other_filters);
-    if (file_name["dcr-threshold"].empty())
-    {
-      cout << "[WARNING][database::get_dcr_threshold_scan] Run number not found in database" << endl;
-      cache_memory[board][channel][step][key_word] = nullptr;
-      return cache_memory[board][channel][step][key_word];
-    }
-    cache_memory[board][channel][step][key_word] = ureadout_dcr_get(file_name["dcr-threshold"], "threshold", "dead_rate");
-    if (!cache_memory[board][channel][step][key_word])
-    {
-      cout << "[WARNING][database::get_dcr_threshold_scan] DCR threshold scan TGraph error" << endl;
-      cache_memory[board][channel][step][key_word] = nullptr;
-      return cache_memory[board][channel][step][key_word];
-    }
-    if (cache_memory[board][channel][step][key_word]->GetN() == 0)
-    {
-      cout << "[WARNING][database::get_dcr_threshold_scan] DCR threshold scan TGraph has 0 points" << endl;
-      cache_memory[board][channel][step][key_word] = nullptr;
-      return cache_memory[board][channel][step][key_word];
-    }
-    graphutils::set_style(cache_memory[board][channel][step][key_word], marker, color);
-    //  Return result
-    return cache_memory[board][channel][step][key_word];
+    return get_dcr_vbias_scan(board, channel, step, {{}}, marker, color);
   }
+
+  //  - F - Get average gain over listed parameters
+  template <bool use_rms = false>
+  TGraphErrors *
+  get_average_dcr_at_overvoltage(std::vector<std::string> board_list, std::string sensor, std::string step, std::vector<float> overvoltage_points = standard_overvoltage_points, int marker = kCircle, int color = kBlue)
+  {
+    return get_average_sensor_values_at_overvoltage<get_dcr_vbias_scan, use_rms>(board_list, sensor, step, overvoltage_points, marker, color);
+  }
+
+  //
+  //  --- --- Gain
+
+  //  - F - Main function for Gain curve getter
   TGraphErrors *
   get_gain(std::string board, std::string channel, std::string step, std::vector<std::pair<std::string, std::string>> other_filters, int marker, int color)
   {
@@ -468,6 +641,303 @@ namespace database
     graphutils::y_scale(cache_memory[board][channel][step]["Gain"], 1. / TMath::Qe());
     //
     return cache_memory[board][channel][step]["Gain"];
+  }
+
+  //  - F - Simplified function for Gain curve getter
+  TGraphErrors *
+  get_gain(std::string board, std::string channel, std::string step, int marker, int color)
+  {
+    return get_gain(board, channel, step, {{}}, marker, color);
+  }
+
+  //  - F - Get average gain over listed parameters
+  template <bool use_rms = false>
+  TGraphErrors *
+  get_average_gain_at_overvoltage(std::vector<std::string> board_list, std::string sensor, std::string step, std::vector<float> overvoltage_points = standard_overvoltage_points, int marker = kCircle, int color = kBlue)
+  {
+    return get_average_sensor_values_at_overvoltage<get_gain>(board_list, sensor, step, overvoltage_points, marker, color);
+  }
+
+  //
+  //
+  //
+  //
+  //
+  //
+  //
+  //
+  //
+  //
+  //
+  //
+  //
+  //
+  //
+  //  --- SORT ME PLEASE FOR THE LOG --
+  //  --- --- DCR
+  //  --- --- --- Vbias
+
+  std::pair<float, float>
+  get_dcr_at_overvoltage(std::string board, std::string channel, std::string step, float overvoltage)
+  {
+    return database::get_value_at_overvoltage<database::get_dcr_vbias_scan>(board, channel, step, overvoltage);
+  }
+  std::vector<std::pair<float, float>>
+  get_all_dcr_at_overvoltage(std::string board, std::string sensor, std::string step, float overvoltage)
+  {
+    return database::get_all_values_at_overvoltage<database::get_dcr_vbias_scan>(board, sensor, step, overvoltage);
+  }
+  std::vector<std::pair<float, float>>
+  get_all_dcr_at_overvoltage(std::vector<std::string> board_list, std::string sensor, std::string step, float overvoltage)
+  {
+    std::vector<std::pair<float, float>> result;
+    for (auto current_board : board_list)
+    {
+      auto list_of_current_values = database::get_all_values_at_overvoltage<database::get_dcr_vbias_scan>(current_board, sensor, step, overvoltage);
+      for (auto current_value : list_of_current_values)
+        result.push_back(current_value);
+    }
+    return result;
+  }
+  std::vector<std::pair<float, float>>
+  get_all_dcr_at_overvoltage(std::string sensor, std::string step, float overvoltage)
+  {
+    std::vector<std::pair<float, float>> result;
+    for (auto current_board : standard_status_to_boards[step])
+    {
+      auto list_of_current_values = database::get_all_values_at_overvoltage<database::get_dcr_vbias_scan>(current_board, sensor, step, overvoltage);
+      for (auto current_value : list_of_current_values)
+        result.push_back(current_value);
+    }
+    return result;
+  }
+
+  //  Recover standard procedure with std::pair
+  std::tuple<float, float, float>
+  get_PDE_merit(std::vector<std::string> board_list, std::string sensor, std::string step, float window_of_acquisition = 1.)
+  {
+    std::tuple<float, float, float> result;
+    auto dcr_avg = measure_average(get_all_dcr_at_overvoltage(board_list, sensor, step, DTS_OVop[sensor]), false);
+    auto dcr_RMS = measure_average(get_all_dcr_at_overvoltage(board_list, sensor, step, DTS_OVop[sensor]), true);
+    get<0>(result) = (DTS_PDE[sensor] / (dcr_avg.first * window_of_acquisition));
+    get<1>(result) = (dcr_avg.second / dcr_avg.first) * (DTS_PDE[sensor] / (dcr_avg.first * window_of_acquisition));
+    get<2>(result) = (dcr_RMS.second / dcr_avg.first) * (DTS_PDE[sensor] / (dcr_avg.first * window_of_acquisition));
+    return result;
+  }
+
+  std::tuple<float, float, float>
+  get_relative_PDE_merit(std::tuple<float, float, float> target_merit, std::tuple<float, float, float> standard_merit)
+  {
+    float ref = get<0>(standard_merit);
+    std::tuple<float, float, float> result;
+    get<0>(result) = (get<0>(target_merit) - ref) / ref;
+    get<1>(result) = get<1>(target_merit) / ref;
+    get<2>(result) = get<2>(target_merit) / ref;
+    // get<1>(result) = sqrt((get<1>(target_merit) / get<0>(target_merit)) * (get<1>(target_merit) / get<0>(target_merit)) + ((get<1>(standard_merit) * get<0>(target_merit) / (get<0>(standard_merit) * get<0>(standard_merit)))) * (get<1>(standard_merit) * get<0>(target_merit) / (get<0>(standard_merit) * get<0>(standard_merit))));
+    // get<2>(result) = sqrt((get<2>(target_merit) / get<0>(target_merit)) * (get<2>(target_merit) / get<0>(target_merit)) + ((get<2>(standard_merit) * get<0>(target_merit) / (get<0>(standard_merit) * get<0>(standard_merit)))) * (get<2>(standard_merit) * get<0>(target_merit) / (get<0>(standard_merit) * get<0>(standard_merit))));
+    return result;
+  }
+
+  //  Generalise
+  template <bool use_rms>
+  TGraphErrors *
+  get_dcr_overvoltage_scan(std::vector<std::string> board_list, std::string sensor, std::string step, std::vector<float> overvoltage_points = standard_overvoltage_points)
+  {
+    TGraphErrors *gResult = new TGraphErrors;
+    for (auto current_overvoltage : overvoltage_points)
+    {
+      auto current_point = gResult->GetN();
+      auto current_point_y = measure_average(get_all_dcr_at_overvoltage(board_list, sensor, step, current_overvoltage), use_rms);
+      gResult->SetPoint(current_point, current_overvoltage, current_point_y.first);
+      gResult->SetPointError(current_point, 0., current_point_y.second);
+    }
+    return gResult;
+  }
+
+  std::pair<float, float>
+  get_dcr_excess_at_overvoltage(std::string board, std::string channel, std::string step, float overvoltage)
+  {
+    auto current_dcr = database::get_value_at_overvoltage<database::get_dcr_vbias_scan>(board, channel, step, overvoltage);
+    auto new_step_dcr = database::get_value_at_overvoltage<database::get_dcr_vbias_scan>(board, channel, "NEW", overvoltage);
+    return {current_dcr.first - new_step_dcr.first, sqrt(current_dcr.second * current_dcr.second + new_step_dcr.second * new_step_dcr.second)};
+  }
+  std::vector<std::pair<float, float>>
+  get_all_dcr_excess_at_overvoltage(std::string board, std::string sensor, std::string step, float overvoltage)
+  {
+    std::vector<std::pair<float, float>> result;
+    auto all_current_dcr = database::get_all_values_at_overvoltage<database::get_dcr_vbias_scan>(board, sensor, step, overvoltage);
+    auto all_new_step_dcr = database::get_all_values_at_overvoltage<database::get_dcr_vbias_scan>(board, sensor, "NEW", overvoltage);
+    auto iTer = -1;
+    for (auto current_dcr : all_current_dcr)
+    {
+      iTer++;
+      auto new_step_dcr = all_new_step_dcr[iTer];
+      result.push_back({current_dcr.first - new_step_dcr.first, sqrt(current_dcr.second * current_dcr.second + new_step_dcr.second * new_step_dcr.second)});
+    }
+    return result;
+  }
+  std::vector<std::pair<float, float>>
+  get_all_dcr_excess_at_overvoltage(std::vector<std::string> board_list, std::string sensor, std::string step, float overvoltage)
+  {
+    std::vector<std::pair<float, float>> result;
+    for (auto current_board : board_list)
+    {
+      auto list_of_current_values = database::get_all_dcr_excess_at_overvoltage(current_board, sensor, step, overvoltage);
+      for (auto current_value : list_of_current_values)
+        result.push_back(current_value);
+    }
+    return result;
+  }
+  template <bool use_rms>
+  TGraphErrors *
+  get_dcr_increase_overvoltage_scan(std::vector<std::string> board_list, std::string sensor, std::string step, std::vector<float> overvoltage_points = standard_overvoltage_points)
+  {
+    TGraphErrors *gResult = new TGraphErrors;
+    for (auto current_overvoltage : overvoltage_points)
+    {
+      auto current_point = gResult->GetN();
+      auto current_point_y = measure_average(get_all_dcr_excess_at_overvoltage(board_list, sensor, step, current_overvoltage), use_rms);
+      gResult->SetPoint(current_point, current_overvoltage, current_point_y.first);
+      gResult->SetPointError(current_point, 0., current_point_y.second);
+    }
+    return gResult;
+  }
+
+  //  --- --- --- Threshold
+  TGraphErrors *
+  get_dcr_threshold_scan(std::string board, std::string channel, std::string step, int marker, int color)
+  {
+    return get_dcr_threshold_scan(board, channel, step, {{}}, marker, color);
+  }
+  TGraphErrors *
+  get_dcr_threshold_scan(std::string board, std::string channel, std::string step, std::vector<std::pair<std::string, std::string>> other_filters, int marker, int color)
+  {
+    std::string key_word = "DCR_threshold";
+    //  Check the DCR curve has been stored
+    if (cache_memory.find(board) != cache_memory.end())
+    {
+      if (cache_memory[board].find(channel) != cache_memory[board].end())
+      {
+        if (cache_memory[board][channel].find(step) != cache_memory[board][channel].end())
+        {
+          if (cache_memory[board][channel][step].find(key_word) != cache_memory[board][channel][step].end())
+          {
+            graphutils::set_style(cache_memory[board][channel][step][key_word], marker, color);
+            return cache_memory[board][channel][step][key_word];
+          }
+        }
+      }
+    }
+    //  Not found: we need to calculate it
+    auto file_name = get_filename(board, channel, step, other_filters);
+    if (file_name["dcr-threshold"].empty())
+    {
+      cout << "[WARNING][database::get_dcr_threshold_scan] Run number not found in database" << endl;
+      cache_memory[board][channel][step][key_word] = nullptr;
+      return cache_memory[board][channel][step][key_word];
+    }
+    cache_memory[board][channel][step][key_word] = ureadout_dcr_get(file_name["dcr-threshold"], "threshold", "dead_rate");
+    if (!cache_memory[board][channel][step][key_word])
+    {
+      cout << "[WARNING][database::get_dcr_threshold_scan] DCR threshold scan TGraph error" << endl;
+      cache_memory[board][channel][step][key_word] = nullptr;
+      return cache_memory[board][channel][step][key_word];
+    }
+    if (cache_memory[board][channel][step][key_word]->GetN() == 0)
+    {
+      cout << "[WARNING][database::get_dcr_threshold_scan] DCR threshold scan TGraph has 0 points" << endl;
+      cache_memory[board][channel][step][key_word] = nullptr;
+      return cache_memory[board][channel][step][key_word];
+    }
+    graphutils::set_style(cache_memory[board][channel][step][key_word], marker, color);
+    //  Return result
+    return cache_memory[board][channel][step][key_word];
+  }
+
+  //  --- --- IV
+
+  //  --- --- --- Vbias
+  std::pair<float, float>
+  get_iv_at_overvoltage(std::string board, std::string channel, std::string step, float overvoltage)
+  {
+    return database::get_value_at_overvoltage<database::get_iv_scan>(board, channel, step, overvoltage);
+  }
+  std::vector<std::pair<float, float>>
+  get_all_iv_at_overvoltage(std::string board, std::string sensor, std::string step, float overvoltage)
+  {
+    return database::get_all_values_at_overvoltage<database::get_iv_scan>(board, sensor, step, overvoltage);
+  }
+  std::pair<float, float>
+  get_iv_excess_at_overvoltage(std::string board, std::string channel, std::string step, float overvoltage)
+  {
+    auto current_dcr = database::get_value_at_overvoltage<database::get_iv_scan>(board, channel, step, overvoltage);
+    auto new_step_dcr = database::get_value_at_overvoltage<database::get_iv_scan>(board, channel, "NEW", overvoltage);
+    return {current_dcr.first - new_step_dcr.first, sqrt(current_dcr.second * current_dcr.second + new_step_dcr.second * new_step_dcr.second)};
+  }
+  std::vector<std::pair<float, float>>
+  get_all_iv_excess_at_overvoltage(std::string board, std::string sensor, std::string step, float overvoltage)
+  {
+    std::vector<std::pair<float, float>> result;
+    auto all_current_dcr = database::get_all_values_at_overvoltage<database::get_iv_scan>(board, sensor, step, overvoltage);
+    auto all_new_step_dcr = database::get_all_values_at_overvoltage<database::get_iv_scan>(board, sensor, "NEW", overvoltage);
+    auto iTer = -1;
+    for (auto current_dcr : all_current_dcr)
+    {
+      iTer++;
+      auto new_step_dcr = all_new_step_dcr[iTer];
+      result.push_back({current_dcr.first - new_step_dcr.first, sqrt(current_dcr.second * current_dcr.second + new_step_dcr.second * new_step_dcr.second)});
+    }
+    return result;
+  }
+  template <bool use_board_only = false>
+  std::pair<float, float>
+  get_iv_FOD_at_overvoltage(std::string board, std::string channel, std::string step, std::string comparison_step, float overvoltage)
+  {
+    auto current_dcr = database::get_value_at_overvoltage<database::get_iv_scan>(board, channel, step, overvoltage);
+    auto new_step_dcr = measure_average(database::get_all_values_at_overvoltage<database::get_iv_scan>(standard_status_to_boards["NEW"], channel_to_sensor[channel], "NEW", overvoltage));
+    auto cmp_step_dcr = measure_average(database::get_all_values_at_overvoltage<database::get_iv_scan>(standard_status_to_boards[comparison_step], channel_to_sensor[channel], comparison_step, overvoltage));
+    if (use_board_only)
+    {
+      new_step_dcr = database::get_value_at_overvoltage<database::get_iv_scan>(board, channel, "NEW", overvoltage);
+      cmp_step_dcr = database::get_value_at_overvoltage<database::get_iv_scan>(board, channel, comparison_step, overvoltage);
+    }
+    return measure_fraction_of_damage(current_dcr, new_step_dcr, cmp_step_dcr);
+  }
+  template <bool use_board_only = false>
+  std::vector<std::pair<float, float>>
+  get_all_iv_FOD_at_overvoltage(std::string board, std::string sensor, std::string step, std::string comparison_step, float overvoltage)
+  {
+    std::vector<std::pair<float, float>> result;
+    auto all_current_dcr = database::get_all_values_at_overvoltage<database::get_iv_scan>(board, sensor, step, overvoltage);
+    if (use_board_only)
+    {
+      auto all_new_step_dcr = database::get_all_values_at_overvoltage<database::get_iv_scan>(board, sensor, "NEW", overvoltage);
+      auto all_cmp_step_dcr = database::get_all_values_at_overvoltage<database::get_iv_scan>(board, sensor, comparison_step, overvoltage);
+      auto iTer = -1;
+      for (auto current_dcr : all_current_dcr)
+      {
+        iTer++;
+        auto new_step_dcr = all_new_step_dcr[iTer];
+        auto cmp_step_dcr = all_cmp_step_dcr[iTer];
+        result.push_back(measure_fraction_of_damage(current_dcr, new_step_dcr, cmp_step_dcr));
+      }
+      return result;
+    }
+    auto new_step_dcr = measure_average(database::get_all_values_at_overvoltage<database::get_iv_scan>(standard_status_to_boards["NEW"], sensor, "NEW", overvoltage));
+    auto cmp_step_dcr = measure_average(database::get_all_values_at_overvoltage<database::get_iv_scan>(standard_status_to_boards[comparison_step], sensor, comparison_step, overvoltage));
+    for (auto current_dcr : all_current_dcr)
+      result.push_back(measure_fraction_of_damage(current_dcr, new_step_dcr, cmp_step_dcr));
+    return result;
+  }
+
+  //  --- SORT ME ---
+  //  --- SORT ME ---
+  //  --- SORT ME ---
+
+  std::pair<float, float>
+  get_cross_talk(std::string board, std::string channel, std::string step, std::string check_name)
+  {
+    return measure_cross_talk(get_dcr_threshold_scan(board, channel, step), check_name);
   }
   std::map<std::string, std::string>
   get_filename(std::string board, std::string channel, std::string step, std::vector<std::pair<std::string, std::string>> other_filters)
@@ -569,30 +1039,6 @@ namespace database
     }
     return database_memory[board][step][info];
   }
-  template <TGraphErrors *(*func)(std::string, std::string, std::string, int, int)>
-  std::pair<float, float>
-  get_value_at_voltage(std::string board, std::string channel, std::string step, float target_voltage)
-  {
-    auto target_curve = func(board, channel, step, 0, 0);
-    if (!target_curve)
-      return {-1., -1.};
-    return graphutils::eval_with_errors(target_curve, target_voltage);
-  }
-  template <TGraphErrors *(*func)(std::string, std::string, std::string, int, int)>
-  std::pair<float, float>
-  get_value_at_overvoltage(std::string board, std::string channel, std::string step, float target_overvoltage)
-  {
-    return get_value_at_voltage<func>(board, channel, step, sensor_to_vbd[channel_to_sensor[channel]] + target_overvoltage);
-  }
-  template <TGraphErrors *(*func)(std::string, std::string, std::string, int, int)>
-  std::vector<std::pair<float, float>>
-  get_all_values_at_overvoltage(std::string board, std::string sensor, std::string step, float target_overvoltage)
-  {
-    std::vector<std::pair<float, float>> result;
-    for (auto current_channel : sensor_to_channels[sensor])
-      result.push_back(get_value_at_overvoltage<func>(board, current_channel, step, target_overvoltage));
-    return result;
-  }
   //  --- Quality assurance
   void
   show_database()
@@ -630,5 +1076,413 @@ namespace database
     auto maximum = gTarget->GetY()[gTarget->GetN() - 1];
     auto minimum = gTarget->GetY()[0];
     return (fabs(maximum / minimum)) > 100.;
+  }
+  //  Calculations
+  std::pair<float, float>
+  measure_cross_talk(TGraphErrors *gTarget, std::string plot_name)
+  {
+    //  Clone the target TGraphErrors for drawing check
+    auto new_target = (TGraphErrors *)(gTarget->Clone("new_target"));
+    //  --- Beautifying
+    new_target->SetMarkerStyle(20);
+    new_target->SetMarkerColor(kAzure - 3);
+    //  --- Drawing check
+    TGraphErrors *check_my_points = new TGraphErrors();
+    check_my_points->SetMarkerStyle(24);
+    check_my_points->SetMarkerColor(kRed);
+    check_my_points->SetMarkerSize(1.2);
+    //  Plateau calculation
+    std::map<int, std::pair<float, float>> plateau_values;
+    //  --- Start roughly at mid-point of first plateau
+    auto first_plateau_tolerance = 0.25;
+    auto second_plateau_tolerance = 0.50;
+    auto start_point_plateau = 5;
+    plateau_values[1].first = gTarget->GetPointY(start_point_plateau);
+    plateau_values[1].second = gTarget->GetErrorY(start_point_plateau) * gTarget->GetErrorY(start_point_plateau);
+    first_plateau_tolerance += (gTarget->GetErrorY(start_point_plateau) / gTarget->GetPointY(start_point_plateau));
+    //  --- Add point to check drawing
+    check_my_points->SetPoint(0, gTarget->GetPointX(start_point_plateau), gTarget->GetPointY(start_point_plateau));
+    //  --- Utility for the mean calculation
+    auto cuncurrent_points = 1;
+    //  Start looping to the left
+    for (auto iPnt = start_point_plateau + 1; iPnt < gTarget->GetN(); iPnt++)
+    {
+      auto current_y_val = gTarget->GetPointY(iPnt);
+      auto current_y_err = gTarget->GetErrorY(iPnt);
+      //  Stop when the points deviate over 15%
+      if (fabs((current_y_val - plateau_values[1].first / cuncurrent_points) / (plateau_values[1].first / cuncurrent_points)) > first_plateau_tolerance)
+        break;
+      cuncurrent_points++;
+      plateau_values[1].first += current_y_val;
+      plateau_values[1].second += current_y_err * current_y_err;
+      //  --- Add point to check drawing
+      check_my_points->SetPoint(check_my_points->GetN(), gTarget->GetPointX(iPnt), gTarget->GetPointY(iPnt));
+    }
+    //  Start looping to the right
+    for (auto iPnt = start_point_plateau - 1; iPnt >= 0; iPnt--)
+    {
+      auto current_y_val = gTarget->GetPointY(iPnt);
+      auto current_y_err = gTarget->GetErrorY(iPnt);
+      //  Stop when the points deviate over 15%
+      if (fabs((current_y_val - plateau_values[1].first / cuncurrent_points) / (plateau_values[1].first / cuncurrent_points)) > first_plateau_tolerance)
+        break;
+      cuncurrent_points++;
+      plateau_values[1].first += current_y_val;
+      plateau_values[1].second += current_y_err * current_y_err;
+      //  --- Add point to check drawing
+      check_my_points->SetPoint(check_my_points->GetN(), gTarget->GetPointX(iPnt), gTarget->GetPointY(iPnt));
+    }
+    //  --- Finalise calculation
+    plateau_values[1].first /= cuncurrent_points;
+    plateau_values[1].second = sqrt(plateau_values[1].second);
+    plateau_values[1].second /= cuncurrent_points;
+    //  --- Start roughly at mid-point of first plateau
+    start_point_plateau = cuncurrent_points + 5;
+    plateau_values[2].first = gTarget->GetPointY(start_point_plateau);
+    plateau_values[2].second = gTarget->GetErrorY(start_point_plateau) * gTarget->GetErrorY(start_point_plateau);
+    second_plateau_tolerance += (gTarget->GetErrorY(start_point_plateau) / gTarget->GetPointY(start_point_plateau));
+    //  --- Add point to check drawing
+    check_my_points->SetPoint(check_my_points->GetN(), gTarget->GetPointX(start_point_plateau), gTarget->GetPointY(start_point_plateau));
+    //  --- Utility for the mean calculation
+    cuncurrent_points = 1;
+    //  Start looping to the left
+    for (auto iPnt = start_point_plateau + 1; iPnt < gTarget->GetN(); iPnt++)
+    {
+      auto current_y_val = gTarget->GetPointY(iPnt);
+      auto current_y_err = gTarget->GetErrorY(iPnt);
+      //  Stop when the points deviate over 15%
+      if (fabs((current_y_val - plateau_values[2].first / cuncurrent_points) / (plateau_values[2].first / cuncurrent_points)) > second_plateau_tolerance)
+        break;
+      cuncurrent_points++;
+      plateau_values[2].first += current_y_val;
+      plateau_values[2].second += current_y_err * current_y_err;
+      //  --- Add point to check drawing
+      check_my_points->SetPoint(check_my_points->GetN(), gTarget->GetPointX(iPnt), gTarget->GetPointY(iPnt));
+    }
+    for (auto iPnt = start_point_plateau - 1; iPnt >= 0; iPnt--)
+    {
+      auto current_y_val = gTarget->GetPointY(iPnt);
+      auto current_y_err = gTarget->GetErrorY(iPnt);
+      //  Stop when the points deviate over 15%
+      if (fabs((current_y_val - plateau_values[2].first / cuncurrent_points) / (plateau_values[2].first / cuncurrent_points)) > second_plateau_tolerance)
+        break;
+      cuncurrent_points++;
+      plateau_values[2].first += current_y_val;
+      plateau_values[2].second += current_y_err * current_y_err;
+      //  --- Add point to check drawing
+      check_my_points->SetPoint(check_my_points->GetN(), gTarget->GetPointX(iPnt), gTarget->GetPointY(iPnt));
+    }
+    //  --- Finalise calculation
+    plateau_values[2].first /= cuncurrent_points;
+    plateau_values[2].second = sqrt(plateau_values[1].second);
+    plateau_values[2].second /= cuncurrent_points;
+    //  Plot if requested
+    if (!plot_name.empty())
+    {
+      TCanvas *c1 = new TCanvas();
+      gPad->SetLogy();
+      new_target->Draw("AP");
+      check_my_points->Draw("SAME P");
+      c1->SaveAs(Form("%s.pdf", plot_name.c_str()));
+    }
+    //  Error calculation
+    auto error_on_first_plateau = plateau_values[1].second * plateau_values[1].second * ((plateau_values[1].first) / ((plateau_values[1].first - plateau_values[2].first) * (plateau_values[1].first - plateau_values[2].first)));
+    auto error_on_second_plateau = plateau_values[2].second * plateau_values[2].second * ((plateau_values[1].first) / ((plateau_values[1].first - plateau_values[2].first) * (plateau_values[1].first - plateau_values[2].first)));
+    //  Return
+    return {plateau_values[2].first / (plateau_values[1].first - plateau_values[2].first), sqrt(error_on_first_plateau + error_on_second_plateau)};
+  }
+  std::pair<float, float>
+  measure_signal_amp(TGraphErrors *gTarget, std::string plot_name)
+  {
+    //  Clone the target TGraphErrors for drawing check
+    auto new_target = (TGraphErrors *)(gTarget->Clone("new_target"));
+    //  --- Beautifying
+    new_target->SetMarkerStyle(20);
+    new_target->SetMarkerColor(kAzure - 3);
+    //  --- Drawing check
+    TGraphErrors *check_my_points = new TGraphErrors();
+    check_my_points->SetMarkerStyle(24);
+    check_my_points->SetMarkerColor(kRed);
+    check_my_points->SetMarkerSize(1.2);
+    //  Plateau calculation
+    std::map<int, std::pair<float, float>> plateau_values;
+    //  --- Start roughly at mid-point of first plateau
+    auto first_plateau_tolerance = 0.25;
+    auto second_plateau_tolerance = 0.50;
+    auto start_point_plateau = 5;
+    plateau_values[1].first = gTarget->GetPointY(start_point_plateau);
+    plateau_values[1].second = gTarget->GetErrorY(start_point_plateau) * gTarget->GetErrorY(start_point_plateau);
+    first_plateau_tolerance += (gTarget->GetErrorY(start_point_plateau) / gTarget->GetPointY(start_point_plateau));
+    //  --- Add point to check drawing
+    check_my_points->SetPoint(0, gTarget->GetPointX(start_point_plateau), gTarget->GetPointY(start_point_plateau));
+    //  --- Utility for the mean calculation
+    auto cuncurrent_points = 1;
+    //  --- Utility for the amplitude calculation
+    auto last_point_of_first_plateau = 0;
+    auto first_point_of_second_plateau = 0;
+    //  Start looping to the left
+    for (auto iPnt = start_point_plateau + 1; iPnt < gTarget->GetN(); iPnt++)
+    {
+      auto current_y_val = gTarget->GetPointY(iPnt);
+      auto current_y_err = gTarget->GetErrorY(iPnt);
+      //  Stop when the points deviate over 15%
+      if (fabs((current_y_val - plateau_values[1].first / cuncurrent_points) / (plateau_values[1].first / cuncurrent_points)) > first_plateau_tolerance)
+        break;
+      last_point_of_first_plateau = iPnt;
+      cuncurrent_points++;
+      plateau_values[1].first += current_y_val;
+      plateau_values[1].second += current_y_err * current_y_err;
+      //  --- Add point to check drawing
+      check_my_points->SetPoint(check_my_points->GetN(), gTarget->GetPointX(iPnt), gTarget->GetPointY(iPnt));
+    }
+    //  Start looping to the right
+    for (auto iPnt = start_point_plateau - 1; iPnt >= 0; iPnt--)
+    {
+      auto current_y_val = gTarget->GetPointY(iPnt);
+      auto current_y_err = gTarget->GetErrorY(iPnt);
+      //  Stop when the points deviate over 15%
+      if (fabs((current_y_val - plateau_values[1].first / cuncurrent_points) / (plateau_values[1].first / cuncurrent_points)) > first_plateau_tolerance)
+        break;
+      cuncurrent_points++;
+      plateau_values[1].first += current_y_val;
+      plateau_values[1].second += current_y_err * current_y_err;
+      //  --- Add point to check drawing
+      check_my_points->SetPoint(check_my_points->GetN(), gTarget->GetPointX(iPnt), gTarget->GetPointY(iPnt));
+    }
+    //  --- Finalise calculation
+    plateau_values[1].first /= cuncurrent_points;
+    plateau_values[1].second = sqrt(plateau_values[1].second);
+    plateau_values[1].second /= cuncurrent_points;
+    //  --- Start roughly at mid-point of first plateau
+    start_point_plateau = cuncurrent_points + 5;
+    plateau_values[2].first = gTarget->GetPointY(start_point_plateau);
+    plateau_values[2].second = gTarget->GetErrorY(start_point_plateau) * gTarget->GetErrorY(start_point_plateau);
+    second_plateau_tolerance += (gTarget->GetErrorY(start_point_plateau) / gTarget->GetPointY(start_point_plateau));
+    //  --- Add point to check drawing
+    check_my_points->SetPoint(check_my_points->GetN(), gTarget->GetPointX(start_point_plateau), gTarget->GetPointY(start_point_plateau));
+    //  --- Utility for the mean calculation
+    cuncurrent_points = 1;
+    //  Start looping to the left
+    for (auto iPnt = start_point_plateau + 1; iPnt < gTarget->GetN(); iPnt++)
+    {
+      auto current_y_val = gTarget->GetPointY(iPnt);
+      auto current_y_err = gTarget->GetErrorY(iPnt);
+      //  Stop when the points deviate over 15%
+      if (fabs((current_y_val - plateau_values[2].first / cuncurrent_points) / (plateau_values[2].first / cuncurrent_points)) > second_plateau_tolerance)
+        break;
+      cuncurrent_points++;
+      plateau_values[2].first += current_y_val;
+      plateau_values[2].second += current_y_err * current_y_err;
+      //  --- Add point to check drawing
+      check_my_points->SetPoint(check_my_points->GetN(), gTarget->GetPointX(iPnt), gTarget->GetPointY(iPnt));
+    }
+    for (auto iPnt = start_point_plateau - 1; iPnt >= 0; iPnt--)
+    {
+      auto current_y_val = gTarget->GetPointY(iPnt);
+      auto current_y_err = gTarget->GetErrorY(iPnt);
+      //  Stop when the points deviate over 15%
+      if (fabs((current_y_val - plateau_values[2].first / cuncurrent_points) / (plateau_values[2].first / cuncurrent_points)) > second_plateau_tolerance)
+        break;
+      first_point_of_second_plateau = iPnt;
+      cuncurrent_points++;
+      plateau_values[2].first += current_y_val;
+      plateau_values[2].second += current_y_err * current_y_err;
+      //  --- Add point to check drawing
+      check_my_points->SetPoint(check_my_points->GetN(), gTarget->GetPointX(iPnt), gTarget->GetPointY(iPnt));
+    }
+    //  --- Finalise calculation
+    plateau_values[2].first /= cuncurrent_points;
+    plateau_values[2].second = sqrt(plateau_values[1].second);
+    plateau_values[2].second /= cuncurrent_points;
+    //  Plot if requested
+    if (!plot_name.empty())
+    {
+      TCanvas *c1 = new TCanvas();
+      gPad->SetLogy();
+      gPad->SetGridx();
+      gPad->SetGridy();
+      new_target->Draw("AP");
+      check_my_points->Draw("SAME P");
+      c1->SaveAs(Form("%s.pdf", plot_name.c_str()));
+    }
+    //  Error calculation
+    auto error_on_first_plateau = plateau_values[1].second * plateau_values[1].second * ((plateau_values[1].first) / ((plateau_values[1].first - plateau_values[2].first) * (plateau_values[1].first - plateau_values[2].first)));
+    auto error_on_second_plateau = plateau_values[2].second * plateau_values[2].second * ((plateau_values[1].first) / ((plateau_values[1].first - plateau_values[2].first) * (plateau_values[1].first - plateau_values[2].first)));
+    cout << 0.5 * gTarget->GetPointX(first_point_of_second_plateau) + 0.5 * gTarget->GetPointX(last_point_of_first_plateau) << endl;
+    cout << gTarget->GetPointX(first_point_of_second_plateau) << "  -  " << gTarget->GetPointX(last_point_of_first_plateau) << endl;
+    //  Return
+    return {0.5 * gTarget->GetPointX(first_point_of_second_plateau) + 0.5 * gTarget->GetPointX(last_point_of_first_plateau), -1.};
+  }
+  std::pair<float, float>
+  measure_fraction_of_damage(std::pair<float, float> target_step, std::pair<float, float> new_reference, std::pair<float, float> maximum_reference)
+  {
+    std::pair<float, float> result;
+    //  Calculate mean value
+    result.first = (target_step.first - new_reference.first) / (maximum_reference.first - new_reference.first);
+    //  Calulate uncertainty
+    //  --- uncertainty related to target_step
+    auto target_uncertainty = target_step.second * target_step.second * (1. / (maximum_reference.first - new_reference.first)) * (1. / (maximum_reference.first - new_reference.first));
+    //  --- uncertainty related to new
+    auto new_uncertainty = new_reference.second * new_reference.second * ((target_step.first - maximum_reference.first) / ((maximum_reference.first - new_reference.first) * (maximum_reference.first - new_reference.first))) * ((target_step.first - maximum_reference.first) / ((maximum_reference.first - new_reference.first) * (maximum_reference.first - new_reference.first)));
+    //  --- uncertainty related to maximum
+    auto maximum_uncertainty = maximum_reference.second * maximum_reference.second * ((new_reference.first - target_step.first) / ((maximum_reference.first - new_reference.first) * (maximum_reference.first - new_reference.first))) * ((new_reference.first - target_step.first) / ((maximum_reference.first - new_reference.first) * (maximum_reference.first - new_reference.first)));
+    //  --- Total uncertainty
+    result.second = sqrt(target_uncertainty + new_uncertainty + maximum_uncertainty);
+    return result;
+  }
+  std::vector<std::pair<float, float>>
+  measure_fraction_of_damage(std::vector<std::pair<float, float>> target_step, std::vector<std::pair<float, float>> new_reference, std::vector<std::pair<float, float>> maximum_reference)
+  {
+    std::vector<std::pair<float, float>> result;
+
+    return result;
+  }
+  //  Utilities
+  std::vector<TGraphErrors *> make_graph(mkgraph_data_structure data_structure)
+  {
+    std::vector<TGraphErrors *> result;
+    auto maximum_size = 0.;
+    for (auto [x_coordinate, y_coordinate_array] : data_structure)
+      maximum_size = max(maximum_size, 1. * y_coordinate_array.size());
+    for (auto _unused = 0; _unused < maximum_size; _unused++)
+      result.push_back(new TGraphErrors());
+    for (auto [x_coordinate, y_coordinate_array] : data_structure)
+    {
+      auto iy = -1;
+      for (auto y_coordinate : y_coordinate_array)
+      {
+        iy++;
+        auto ix = result[iy]->GetN();
+        result[iy]->SetPoint(ix, x_coordinate.first, y_coordinate.first);
+        result[iy]->SetPointError(ix, x_coordinate.second, y_coordinate.second);
+      }
+    }
+    return result;
+  }
+  void set_multi_graph(std::vector<TGraphErrors *> &target_graphs, int target_color, int target_marker)
+  {
+    for (auto current_graph : target_graphs)
+    {
+      current_graph->SetLineColorAlpha(target_color, 0.2);
+      current_graph->SetLineStyle(kDashed);
+      current_graph->SetMarkerColorAlpha(target_color, 0.2);
+      current_graph->SetMarkerStyle(target_marker);
+    }
+    target_graphs.at(0)->SetLineColor(target_color);
+    target_graphs.at(0)->SetLineStyle(kSolid);
+    target_graphs.at(0)->SetLineWidth(2);
+    target_graphs.at(0)->SetMarkerColor(target_color);
+    target_graphs.at(0)->SetMarkerStyle(target_marker);
+    target_graphs.at(0)->SetMarkerSize(2);
+    target_graphs.at(1)->SetLineColor(target_color);
+    target_graphs.at(1)->SetLineStyle(kSolid);
+    target_graphs.at(1)->SetLineWidth(2);
+    target_graphs.at(1)->SetMarkerColor(target_color);
+    target_graphs.at(1)->SetMarkerStyle(target_marker);
+    target_graphs.at(1)->SetMarkerSize(2);
+  }
+
+  template <bool use_sqsum = true, bool skip_unfit_skim = false>
+  std::tuple<float, float, float>
+  measure_average_and_rms(std::vector<std::pair<float, float>> measurements, float rms_tolerance = 5.)
+  {
+    //  Final result
+    std::tuple<float, float, float> result = {0., 0., 0.};
+    std::vector<std::pair<float, float>> skimmed_data;
+
+    //  Skim dataset from dangerous values
+    for (auto current_measurement : measurements)
+    {
+      if (skip_unfit_skim)
+        break;
+      if (std::isnan(current_measurement.first))
+        continue;
+      if (std::isinf(current_measurement.first))
+        continue;
+      skimmed_data.push_back(current_measurement);
+    }
+    if (skip_unfit_skim)
+      skimmed_data = measurements;
+
+    //  Measure average and error on the average
+    for (auto current_measurement : skimmed_data)
+    {
+      get<0>(result) += current_measurement.first;
+      get<1>(result) += use_sqsum ? current_measurement.second * current_measurement.second : current_measurement.second;
+    }
+    get<0>(result) /= skimmed_data.size();
+    get<1>(result) = sqrt(get<1>(result)) / skimmed_data.size();
+
+    //  Measure RMS
+    for (auto current_measurement : skimmed_data)
+      get<2>(result) += (get<0>(result) - current_measurement.first) * (get<0>(result) - current_measurement.first);
+    get<2>(result) = sqrt(get<2>(result) / skimmed_data.size());
+
+    //  Second skimming for outliers
+    std::vector<std::pair<float, float>> re_skimmed_data;
+    for (auto current_measurement : skimmed_data)
+      if (fabs(current_measurement.first - get<0>(result)) < rms_tolerance * get<2>(result))
+        re_skimmed_data.push_back(current_measurement);
+    if (re_skimmed_data.size() != skimmed_data.size())
+      return measure_average_and_rms<true, true>(re_skimmed_data);
+
+    return result;
+  }
+  //  --- ---
+  std::pair<float, float>
+  measure_average(std::vector<std::pair<float, float>> measurements, bool use_rms = false)
+  {
+    std::pair<float, float> result;
+    auto avg = measure_average_and_rms(measurements);
+    return {get<0>(avg), use_rms ? get<2>(avg) : get<1>(avg)};
+  }
+
+  template <bool use_rms = false>
+  std::pair<float, float>
+  measure_average(std::vector<std::pair<float, float>> measurements)
+  {
+    std::pair<float, float> result;
+    auto avg = measure_average_and_rms(measurements);
+    return {get<0>(avg), use_rms ? get<2>(avg) : get<1>(avg)};
+  }
+
+  void
+  set_as_main_line(TGraph *gTarget, int marker, int color)
+  {
+    gTarget->SetLineColor(color);
+    gTarget->SetLineStyle(kSolid);
+    gTarget->SetLineWidth(2);
+    gTarget->SetFillStyle(0);
+    gTarget->SetMarkerColor(color);
+    gTarget->SetMarkerStyle(marker);
+    gTarget->SetMarkerSize(2);
+  }
+
+  void
+  set_as_main_line(TGraphErrors *gTarget, int marker, int color)
+  {
+    gTarget->SetLineColor(color);
+    gTarget->SetLineStyle(kSolid);
+    gTarget->SetLineWidth(2);
+    gTarget->SetFillStyle(0);
+    gTarget->SetMarkerColor(color);
+    gTarget->SetMarkerStyle(marker);
+    gTarget->SetMarkerSize(2);
+  }
+
+  void
+  set_as_main_line(TH1 *hTarget, int marker, int color)
+  {
+    hTarget->SetLineColor(color);
+    hTarget->SetLineStyle(kSolid);
+    hTarget->SetLineWidth(2);
+    hTarget->SetMarkerColor(color);
+    hTarget->SetMarkerStyle(marker);
+    hTarget->SetMarkerSize(2);
+    hTarget->SetFillStyle(0);
+    hTarget->SetFillColorAlpha(0., 0.);
+    hTarget->GetXaxis()->SetBinLabel(1, all_sensors[0].c_str());
+    hTarget->GetXaxis()->SetBinLabel(2, all_sensors[1].c_str());
+    hTarget->GetXaxis()->SetBinLabel(3, all_sensors[2].c_str());
   }
 }

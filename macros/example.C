@@ -25,9 +25,13 @@ void example(std::string data_dir)
   c->cd(2)->DrawFrame(45, 1., 65, 1.e7, ";bias voltage (V);dark count rate (Hz)");
   c->cd(2)->SetLogy();
   database::get_dcr_vbias_scan("1", "A1", "NEW", 20, kAzure - 3)->Draw("samelp");
+  database::get_dcr_vbias_scan("1", "A2", "NEW", 20, kAzure - 3)->Draw("samelp");
+  database::get_dcr_vbias_scan("1", "A3", "NEW", 20, kAzure - 3)->Draw("samelp");
+  database::get_dcr_vbias_scan("1", "A4", "NEW", 20, kAzure - 3)->Draw("samelp");
   database::get_dcr_vbias_scan("1", "A1", "TIFPA-IRR1", 25, kRed + 1)->Draw("samelp");
   c->cd(3)->DrawFrame(0., 1., 65, 1.e6, ";threshold voltage (a.u.);dark count rate (Hz)");
   c->cd(3)->SetLogy();
-  database::get_dcr_threshold_scan("1", "A1", "NEW", 20, kAzure - 3)->Draw("samelp");
-  database::get_dcr_threshold_scan("1", "A1", "TIFPA-IRR1", 25, kRed + 1)->Draw("samelp");
+  database::get_dcr_threshold_scan("2", "A1", "NEW", 20, kAzure - 3)->Draw("samelp");
+  database::get_dcr_threshold_scan("2", "A1", "TIFPA-IRR1", 25, kGreen + 2)->Draw("samelp");
+  database::get_dcr_threshold_scan("2", "A1", "OANN-175-150h", 25, kRed)->Draw("samelp");
 }
