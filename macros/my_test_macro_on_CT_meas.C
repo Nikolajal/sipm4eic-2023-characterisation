@@ -41,7 +41,7 @@ void my_test_macro_on_CT_meas(std::string data_dir = "./Data/", std::string outf
           auto current_curve = database::get_dcr_threshold_scan(current_board, current_channel, current_state);
           if (!current_curve)
             continue;
-          _TH1F[histo_tag]->Fill(100 * database::measure_cross_talk(current_curve /*, Form("./plots/hCT_%s_%s_%s", current_board.c_str(), current_channel.c_str(), current_state.c_str())*/).first);
+          _TH1F[histo_tag]->Fill(100 * database::measure_cross_talk(current_curve /*, Form("./plots/hCT_%s_%s_%s", current_board.c_str(), current_channel.c_str(), current_state.c_str())*/)[0 ]);
         }
       }
     }

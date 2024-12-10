@@ -1,5 +1,4 @@
-#include "../source/database.h"
-#include "../utils/clibs/analysis_utils.h"
+#include "../source/database.C"
 //
 void temperature_scan()
 {

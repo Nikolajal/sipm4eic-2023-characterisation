@@ -1,5 +1,4 @@
-#include "../source/database.h"
-#include "../utils/clibs/analysis_utils.h"
+#include "../source/database.C"
 //
 void measure_actnrg(TGraphErrors *graph_1350_NEW, TGraphErrors *graph_1350_IRR, TString title, TString title2)
 {

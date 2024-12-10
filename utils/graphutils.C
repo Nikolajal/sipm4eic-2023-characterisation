@@ -4,14 +4,25 @@
 namespace graphutils
 {
 
-  std::pair<float, float>
+  void reassign_x_values(TGraphErrors *gTarget, std::vector<std::array<float, 2>> new_axis)
+  {
+    if (new_axis.size() < (gTarget->GetN()))
+      throw std::invalid_argument("[ERROR][graphutils::reassign_x_values] reassing axis must be larger than n points");
+    for (auto iPnt = 0; iPnt < gTarget->GetN(); iPnt++)
+    {
+      gTarget->GetX()[iPnt] = new_axis[iPnt][0];
+      gTarget->GetEX()[iPnt] = new_axis[iPnt][1];
+    }
+  }
+
+  std::array<float, 2>
   eval_with_errors(TGraphErrors *gTarget, float _xtarget)
   {
     auto iPnt = 0;
     auto current_x = 1.;
     auto previous_x = 1.;
-    auto interpolated_y = -1.;
-    auto interpolated_ey = -1.;
+    float interpolated_y = -1.;
+    float interpolated_ey = -1.;
     for (iPnt = 1; iPnt < gTarget->GetN() - 1; iPnt++)
     {
       current_x = gTarget->GetPointX(iPnt);
@@ -42,6 +53,78 @@ namespace graphutils
     g->SetLineColor(color);
     g->SetFillColor(color);
     g->SetFillStyle(fill);
+  }
+
+  std::map<std::string, TGraphErrors *>
+  average_same_x(TGraphErrors *target_graph)
+  {
+    std::map<std::string, TGraphErrors *> result;
+    result["ave_err"] = new TGraphErrors();
+    std::map<double, std::vector<std::array<double, 2>>> aggregator;
+    for (auto current_point = 0; current_point < target_graph->GetN(); current_point++)
+      aggregator[target_graph->GetPointX(current_point)].push_back({target_graph->GetPointY(current_point), target_graph->GetErrorY(current_point)});
+    auto i_pnt = -1;
+    for (auto [x_value, y_values_array] : aggregator)
+    {
+      i_pnt++;
+      auto current_average = utility::average(y_values_array);
+      result["ave_err"]->SetPoint(i_pnt, x_value, current_average["ave_err"][0]);
+      result["ave_err"]->SetPointError(i_pnt, 0, current_average["ave_err"][1]);
+    }
+    return result;
+  }
+
+  TGraphErrors *average(TGraphErrors *target_graph, int average_over_n_points = 2)
+  {
+    auto result = new TGraphErrors();
+    for (int i_pnt = 0; i_pnt < target_graph->GetN() - average_over_n_points; i_pnt += average_over_n_points)
+    {
+      double current_x = 0.;
+      double current_y = 0.;
+      double current_ex = 0.;
+      double current_ey = 0.;
+      for (int j = i_pnt; j < i_pnt + average_over_n_points; ++j)
+      {
+        current_x += target_graph->GetX()[j];
+        current_y += target_graph->GetY()[j];
+        current_ex += target_graph->GetEX()[j];
+        current_ey += target_graph->GetEY()[j];
+      }
+      current_x /= (double)average_over_n_points;
+      current_y /= (double)average_over_n_points;
+      current_ex /= (double)average_over_n_points;
+      current_ey /= (double)average_over_n_points;
+      auto current_point = result->GetN();
+      result->SetPoint(current_point, current_x, current_y);
+      result->SetPointError(current_point, current_ex, current_ey);
+    }
+    return result;
+  }
+
+  std::map<std::string, TGraphErrors *>
+  average_graphs(std::vector<TGraphErrors *> graphs_list)
+  {
+    std::map<std::string, TGraphErrors *> result;
+    for (auto i_pnt = 0; i_pnt < graphs_list[0]->GetN(); i_pnt++)
+    {
+      std::vector<std::array<double, 2>> current_point_x;
+      std::vector<std::array<double, 2>> current_point_y;
+      for (auto current_graph : graphs_list)
+      {
+        current_point_x.push_back({current_graph->GetPointX(i_pnt), current_graph->GetErrorX(i_pnt)});
+        current_point_y.push_back({current_graph->GetPointY(i_pnt), current_graph->GetErrorY(i_pnt)});
+      }
+      auto current_average_x = utility::average(current_point_x);
+      auto current_average_y = utility::average(current_point_y);
+      for (auto [type, value] : current_average_x)
+      {
+        if (i_pnt == 0)
+          result[type] = new TGraphErrors();
+        result[type]->SetPoint(i_pnt, current_average_x[type][0], current_average_y[type][0]);
+        result[type]->SetPointError(i_pnt, current_average_x[type][1], current_average_y[type][1]);
+      }
+    }
+    return result;
   }
 
   std::map<std::string, TGraphErrors *>
@@ -97,8 +180,7 @@ namespace graphutils
     return {{"average", gave}, {"rms", grms}, {"width", gwidth}};
   }
 
-  void
-  remove_points(TGraphErrors *g, double min, double max)
+  void remove_points(TGraphErrors *g, double min, double max)
   {
     int i = 0;
     while (i < g->GetN())
@@ -113,8 +195,7 @@ namespace graphutils
     }
   }
 
-  void
-  x_scale(TGraphErrors *g, double scale)
+  void x_scale(TGraphErrors *g, double scale)
   {
     for (int i = 0; i < g->GetN(); ++i)
     {
@@ -123,8 +204,7 @@ namespace graphutils
     }
   }
 
-  void
-  y_scale(TGraphErrors *g, double scale)
+  void y_scale(TGraphErrors *g, double scale)
   {
     for (int i = 0; i < g->GetN(); ++i)
     {
@@ -133,15 +213,13 @@ namespace graphutils
     }
   }
 
-  void
-  y_scale(std::vector<TGraphErrors *> vg, double scale)
+  void y_scale(std::vector<TGraphErrors *> vg, double scale)
   {
     for (auto &g : vg)
       y_scale(g, scale);
   }
 
-  TH1 *
-  project(TGraphErrors *g, int nbins, double min, double max)
+  TH1 *project(TGraphErrors *g, int nbins, double min, double max)
   {
     auto h = new TH1F("h", "", nbins, min, max);
     for (int i = 0; i < g->GetN(); ++i)
@@ -151,23 +229,20 @@ namespace graphutils
     return h;
   }
 
-  void
-  style(TGraphErrors *g, int marker, int color)
+  void style(TGraphErrors *g, int marker, int color)
   {
     g->SetMarkerStyle(marker);
     g->SetMarkerColor(color);
     g->SetLineColor(color);
   }
 
-  void
-  style(std::vector<TGraphErrors *> vg, int marker, int color)
+  void style(std::vector<TGraphErrors *> vg, int marker, int color)
   {
     for (auto g : vg)
       style(g, marker, color);
   }
 
-  void
-  draw(std::vector<TGraphErrors *> vg, const char *opt = "")
+  void draw(std::vector<TGraphErrors *> vg, const char *opt = "")
   {
     for (auto g : vg)
       g->Draw(opt);
@@ -189,6 +264,25 @@ namespace graphutils
       g->SetPointError(i, ex, ey / factor);
     }
     return g;
+  }
+
+  TGraphErrors *
+  scale(TGraphErrors *target_graph, std::array<double, 2> scaling_factor)
+  {
+    auto result = (TGraphErrors *)target_graph->Clone(target_graph->GetName());
+    result->Set(0);
+    for (int i = 0; i < target_graph->GetN(); ++i)
+    {
+      auto x = target_graph->GetX()[i];
+      auto ex = target_graph->GetEX()[i];
+      auto y = target_graph->GetY()[i];
+      auto ey = target_graph->GetEY()[i];
+      auto factor = scaling_factor[0];
+      auto efactor = scaling_factor[1];
+      result->SetPoint(i, x, y / factor);
+      result->SetPointError(i, ex, sqrt(ey * ey / (factor * factor) + ((efactor * efactor) * (y * y) / (factor * factor * factor * factor))));
+    }
+    return result;
   }
 
   std::pair<double, double>
@@ -301,9 +395,9 @@ namespace graphutils
   }
 
   /*
-TGraphErrors *
-derivate(TGraphErrors *gin)
-{
+  TGraphErrors *
+  derivate(TGraphErrors *gin)
+  {
   auto g = (TGraphErrors*)gin->Clone();
   g->Set(0);
   g->SetName(gin->GetName());
@@ -330,7 +424,7 @@ derivate(TGraphErrors *gin)
   }
 
   return g;
-}
+  }
   */
 
   TGraphErrors *
@@ -481,15 +575,13 @@ derivate(TGraphErrors *gin)
     return g;
   }
 
-  void
-  x_shift(TGraphErrors *g, float val)
+  void x_shift(TGraphErrors *g, float val)
   {
     for (int i = 0; i < g->GetN(); ++i)
       g->GetX()[i] -= val;
   }
 
-  void
-  y_shift(TGraphErrors *g, float val)
+  void y_shift(TGraphErrors *g, float val)
   {
     for (int i = 0; i < g->GetN(); ++i)
       g->GetY()[i] -= val;
@@ -632,5 +724,4 @@ derivate(TGraphErrors *gin)
     }
     return gout;
   }
-
 }
